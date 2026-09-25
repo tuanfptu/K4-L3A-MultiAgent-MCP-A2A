@@ -16,12 +16,12 @@ Input → Coordinator → Specialists → Verifier → Output
 
 | Actor | Input | Trách nhiệm | Output/handoff |
 | --- | --- | --- | --- |
-| Coordinator | TODO | TODO | TODO |
-| Order/item | TODO | TODO | TODO |
-| Payment | TODO | TODO | TODO |
-| Shipment | TODO | TODO | TODO |
-| Policy | TODO | TODO | TODO |
-| Verifier | TODO | TODO | TODO |
+| Coordinator | Customer request | Điều phối công việc, xác định tool cần gọi ban đầu | Gọi Specialists hoặc tổng hợp kết quả |
+| Order/item | `order_id` | Thu thập thông tin đơn hàng, sản phẩm (`get_order`, `get_order_items`) | Trả về thông tin chi tiết order/item |
+| Payment | `order_id`, `payment_id` | Thu thập thông tin thanh toán, hoàn tiền (`get_order_payments`, `get_payment_timeline`, `get_refund_timeline`) | Trả về thông tin thanh toán |
+| Shipment | `order_id`, `shipment_id` | Lấy dữ liệu vận chuyển (`get_shipment_summary`) | Trả về trạng thái giao hàng |
+| Policy | `policy_version` | Lấy chính sách thương mại (`get_policy`) | Trả về quy định áp dụng |
+| Verifier | Tất cả evidence | Đối chiếu các thông tin và schemas | JSON output chuẩn xác |
 
 Nêu rõ actor nào được quyền gọi tool nào. Tránh cho mọi agent quyền truy vấn tất cả tool nếu không cần thiết.
 
