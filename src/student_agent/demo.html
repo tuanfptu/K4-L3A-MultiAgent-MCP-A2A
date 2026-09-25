@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#000000">
+  <title>Vesper.ai — Operational AI Infrastructure</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cg transform='rotate(-30 12 12)'%3E%3Ccircle cx='7.3' cy='3.2' r='1.45'/%3E%3Crect x='5.5' y='4.7' width='3.6' height='14.6' rx='1.8'/%3E%3Crect x='14.9' y='4.7' width='3.6' height='14.6' rx='1.8'/%3E%3Ccircle cx='16.7' cy='20.8' r='1.45'/%3E%3C/g%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+  <style>
+    html, body { background: #000000 !important; color: #ffffff; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg: #000000; --text: #ffffff; --muted: #9a9a9a; --border: rgba(255,255,255,.15); --panel: rgba(13,14,16,.88); --glow: #c7d8ff; }
+    html, body { background: #000000; background: var(--bg,#000000); color: #ffffff; color: var(--text,#ffffff); }
+    html { scroll-behavior: smooth; }
+    body { font-family: "Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; overflow-x: hidden; position: relative; }
+    button, select { font: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+    .app { isolation: isolate; min-height: 100dvh; display: grid; grid-template-rows: auto auto minmax(0,1fr) auto; position: relative; overflow: hidden; }
+    .ambient { position: fixed; inset: 0; pointer-events: none; z-index: -2; background: radial-gradient(ellipse 45% 34% at 50% 37%,rgba(126,135,157,.16),transparent 78%), radial-gradient(ellipse 28% 48% at 8% 82%,rgba(68,80,105,.11),transparent 75%), #000; }
+    .ambient:after { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.032) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.032) 1px,transparent 1px); background-size: 48px 48px; mask-image: linear-gradient(to bottom,transparent,black 35%,black 78%,transparent); }
+    .grain { position: fixed; inset: 0; pointer-events: none; z-index: 100; opacity: .12; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E"); }
+    .header { padding: 22px 40px 10px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 20px; position: relative; z-index: 30; }
+    .logo { display: inline-flex; align-items: center; gap: 9px; justify-self: start; font-size: 15.5px; font-weight: 600; letter-spacing: -.03em; white-space: nowrap; }
+    .logo svg { width: 22px; height: 22px; }
+    .logo span { font-weight: 400; }
+    .nav { display: flex; align-items: center; gap: 8px; justify-self: center; }
+    .nav a { height: 40px; display: inline-flex; align-items: center; padding: 0 18px; border: 1px solid rgba(198,198,198,.55); border-radius: 7px; background: linear-gradient(105deg,#050505,#2a2a2a 48%,#4a4a4a); color: #f3f3f3; font-size: 14px; white-space: nowrap; position: relative; overflow: hidden; transition: border .35s,box-shadow .35s; }
+    .nav a:before,.btn:after { content: ""; position: absolute; inset: 0; transform: translateX(-130%); background: linear-gradient(115deg,transparent 25%,rgba(255,255,255,.22) 50%,transparent 75%); transition: transform .65s ease; pointer-events: none; }
+    .nav a:hover:before,.btn:hover:after { transform: translateX(130%); }
+    .nav a:hover,.nav a.active { border-color: rgba(235,235,235,.9); box-shadow: 0 0 18px rgba(200,210,230,.18); }
+    .header-right { justify-self: end; display: flex; align-items: center; gap: 14px; }
+    .connection { display: inline-flex; align-items: center; gap: 8px; color: #bcbec5; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+    .connection i,.status-dot { width: 6px; height: 6px; border-radius: 50%; background: #a6f0c1; box-shadow: 0 0 13px #83edac; display: inline-block; }
+    .connection.offline i { background: #e7a36f; box-shadow: 0 0 12px #e7a36f; }
+    .btn { position: relative; isolation: isolate; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; gap: 9px; height: 40px; padding: 0 16px; border-radius: 6px; font-size: 13.5px; font-weight: 500; letter-spacing: -.02em; white-space: nowrap; transition: background .35s,border .35s,box-shadow .35s,color .35s,filter .35s; }
+    .btn-solid { color: #111; background: linear-gradient(180deg,#fff 0%,#e7e7e7 48%,#cfcfcf 100%); border: 1px solid #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,.95); }
+    .btn-solid:hover { background: linear-gradient(180deg,#fff,#f3f6ff 42%,#d5def2); box-shadow: inset 0 1px 0 #fff,0 0 24px rgba(186,208,255,.32); }
+    .btn-ghost { color: #fff; background: linear-gradient(135deg,rgba(255,255,255,.11),rgba(0,0,0,.5) 46%,rgba(150,170,200,.1)); border: 1px solid rgba(198,198,198,.5); backdrop-filter: blur(16px); }
+    .btn-ghost:hover { border-color: rgba(220,230,255,.8); box-shadow: 0 0 24px rgba(170,200,255,.23); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .menu-button { display: none; width: 42px; height: 42px; border: 1px solid var(--border); border-radius: 6px; background: rgba(8,8,8,.55); color: white; align-items: center; justify-content: center; flex-direction: column; gap: 5px; }
+    .menu-button b { width: 16px; height: 1.5px; border-radius: 1px; background: white; transition: transform .25s,opacity .2s; }
+    .menu-backdrop { display: none; }
+    .hero { text-align: center; display: flex; justify-content: center; align-items: center; flex-direction: column; padding: 24px 24px 26px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 9px; border-radius: 5px; padding: 8px 14px; background: linear-gradient(90deg,#777,#262626 55%,#090909); color: #f1f1f1; font-size: 11.5px; letter-spacing: .03em; margin-bottom: 17px; }
+    .eyebrow svg { width: 16px; height: 16px; }
+    h1 { font-size: clamp(35px,3.55vw,60px); line-height: 1.09; letter-spacing: -.052em; font-weight: 500; max-width: 1000px; }
+    h1 em { font-family: "Instrument Serif","Times New Roman",Times,serif; font-size: 1.09em; font-weight: 400; letter-spacing: -.03em; color: #aaa; }
+    .lede { color: #a3a3a3; font-size: 14px; line-height: 1.6; margin-top: 12px; max-width: 650px; }
+    .workspace { min-height: 0; display: grid; grid-template-columns: minmax(0,1.42fr) minmax(370px,.85fr); gap: 14px; width: min(1500px,calc(100% - 80px)); margin: 0 auto; padding-bottom: 12px; }
+    .panel { min-height: 0; background: linear-gradient(145deg,rgba(28,30,34,.92),rgba(8,9,11,.96) 36%,rgba(17,18,21,.92)); border: 1px solid rgba(255,255,255,.17); border-radius: 17px; box-shadow: 0 28px 90px rgba(0,0,0,.58),inset 0 1px rgba(255,255,255,.08); overflow: hidden; position: relative; }
+    .panel:before { content: ""; position: absolute; inset: 0 0 auto; height: 1px; background: linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent); pointer-events: none; }
+    .panel-head { height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 22px; border-bottom: 1px solid rgba(255,255,255,.09); }
+    .panel-title { font-size: 13px; font-weight: 600; letter-spacing: -.015em; display: flex; align-items: center; gap: 9px; }
+    .panel-title svg { width: 18px; height: 18px; color: #e4e4e4; }
+    .panel-kicker { font-size: 10px; color: #777e8e; text-transform: uppercase; letter-spacing: .13em; white-space: nowrap; }
+    .flow-panel { display: grid; grid-template-rows: 60px minmax(0,1fr) 111px; }
+    .flow-wrap { min-height: 0; padding: 4px 15px 0; position: relative; }
+    .flow-svg { width: 100%; height: 100%; display: block; }
+    .flow-svg .wire { fill: none; stroke: #6d788f; stroke-width: 1.4; opacity: .58; }
+    .flow-svg .wire.mcp-branch { stroke-dasharray: 4 5; opacity: .45; }
+    .flow-svg .wire.hot { stroke: #bacfff; stroke-width: 2; opacity: .95; filter: drop-shadow(0 0 5px rgba(180,205,255,.65)); }
+    .flow-svg .node { cursor: pointer; }
+    .flow-svg .node rect { fill: #16191e; stroke: rgba(205,216,232,.32); stroke-width: 1; transition: fill .25s,stroke .25s,filter .25s; }
+    .flow-svg .node:hover rect,.flow-svg .node.active rect { fill: #252b34; stroke: #c6d7fb; filter: drop-shadow(0 0 12px rgba(160,185,240,.3)); }
+    .flow-svg .node-label { fill: #f1f1f3; font: 600 16px "Inter",sans-serif; letter-spacing: -.02em; pointer-events: none; }
+    .flow-svg .node-sub { fill: #929ba9; font: 11.5px "Inter",sans-serif; pointer-events: none; }
+    .flow-svg .tiny { fill: #778193; font: 10px "Inter",sans-serif; letter-spacing: .1em; }
+    .flow-svg .hub rect { fill: #101216; stroke: rgba(206,222,255,.4); }
+    .flow-svg .core { fill: #c8d9ff; filter: drop-shadow(0 0 8px #b7ccff); }
+    .flow-svg .agent-dot { fill: #aebedc; }
+    .flow-svg .tool-tag { fill: #0e1116; stroke: rgba(175,195,230,.22); }
+    .flow-svg .tool-text { fill: #aeb9c9; font: 10px "Inter",sans-serif; }
+    .flow-detail { border-top: 1px solid rgba(255,255,255,.1); padding: 15px 21px; display: flex; justify-content: space-between; gap: 20px; min-width: 0; }
+    .flow-detail .detail-copy { min-width: 0; }
+    .detail-eyebrow { color: #8591a6; font-size: 10px; text-transform: uppercase; letter-spacing: .13em; margin-bottom: 5px; }
+    .detail-name { font-size: 14px; font-weight: 600; }
+    .detail-desc { color: #a1a6b0; font-size: 11px; line-height: 1.45; margin-top: 4px; max-width: 420px; }
+    .tool-list { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 5px; max-width: 290px; }
+    .tool-list span { padding: 5px 7px; border: 1px solid rgba(180,196,224,.2); border-radius: 5px; color: #b8c5da; background: #10151b; font: 10px ui-monospace,SFMono-Regular,Consolas,monospace; white-space: nowrap; }
+    .demo-panel { display: grid; grid-template-rows: 60px auto minmax(0,1fr) auto; }
+    .demo-controls { padding: 17px 20px 15px; border-bottom: 1px solid rgba(255,255,255,.09); }
+    .mode-switch { display: inline-flex; border: 1px solid rgba(255,255,255,.15); border-radius: 7px; padding: 3px; background: #0b0d10; margin-bottom: 13px; }
+    .mode-switch button { border: 0; border-radius: 5px; background: none; color: #898f99; padding: 7px 13px; font-size: 11px; }
+    .mode-switch button.selected { color: #fff; background: linear-gradient(110deg,#222831,#373d47); box-shadow: inset 0 1px rgba(255,255,255,.13); }
+    .case-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 9px; }
+    .select-wrap { position: relative; }
+    .select-wrap:after { content: "⌄"; position: absolute; right: 13px; top: 8px; color: #bec8d7; pointer-events: none; font-size: 20px; }
+    select { width: 100%; height: 40px; appearance: none; border: 1px solid rgba(255,255,255,.18); border-radius: 6px; background: linear-gradient(145deg,#15181e,#0b0d11); color: #fff; padding: 0 34px 0 12px; font-size: 12px; outline: none; }
+    select:focus { border-color: #a9bce1; }
+    option { background: #16191f; }
+    .case-hint { color: #969eab; font-size: 11px; line-height: 1.4; margin-top: 9px; min-height: 15px; }
+    .quick-cases { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .quick-cases button { border: 1px solid rgba(255,255,255,.13); border-radius: 5px; background: rgba(255,255,255,.035); color: #aeb7c6; padding: 5px 7px; font-size: 10px; transition: border-color .2s,color .2s,background .2s; }
+    .quick-cases button:hover,.quick-cases button.active { border-color: #a7bde1; color: #fff; background: rgba(175,198,236,.1); }
+    .demo-content { overflow-y: auto; min-height: 0; padding: 15px 20px; scrollbar-color: #3d4654 transparent; scrollbar-width: thin; }
+    .section-label { display: flex; align-items: center; justify-content: space-between; color: #8b95a6; font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 10px; }
+    .section-label small { color: #646d7a; font-size: 10px; font-weight: 400; letter-spacing: 0; text-transform: none; }
+    .timeline { display: grid; gap: 7px; }
+    .step { display: grid; grid-template-columns: 22px minmax(0,1fr) auto; align-items: center; gap: 9px; min-height: 35px; padding: 6px 9px; border: 1px solid rgba(255,255,255,.08); border-radius: 7px; background: rgba(255,255,255,.025); color: #a3aab5; font-size: 11px; }
+    .step.current { border-color: rgba(186,208,255,.55); color: #f4f6fc; background: rgba(166,190,230,.1); box-shadow: 0 0 18px rgba(145,180,230,.07); }
+    .step.done { color: #d0d6e0; }
+    .step-index { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; border: 1px solid #525b6a; color: #aeb8c8; font-size: 10px; }
+    .step.current .step-index,.step.done .step-index { background: #d8e5ff; color: #111820; border-color: #d8e5ff; }
+    .step-meta { color: #707b89; font: 10px ui-monospace,SFMono-Regular,Consolas,monospace; }
+    .result { display: none; margin-top: 15px; padding: 13px; border: 1px solid rgba(183,204,237,.19); border-radius: 8px; background: linear-gradient(135deg,rgba(161,185,222,.09),rgba(0,0,0,.16)); }
+    .result.visible { display: block; }
+    .result-top { display: flex; justify-content: space-between; align-items: start; gap: 10px; }
+    .result-issue { font-size: 15px; font-weight: 600; letter-spacing: -.025em; margin-top: 4px; overflow-wrap: anywhere; }
+    .result-badge { padding: 5px 7px; border: 1px solid rgba(174,239,195,.33); color: #aee9c0; border-radius: 4px; font-size: 10px; white-space: nowrap; }
+    .result-badge.no-action { color: #cbd1dc; border-color: #6a7080; }
+    .result-badge.investigate { color: #f1d3a8; border-color: #b58c51; }
+    .result-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 14px; }
+    .result-grid div { border-top: 1px solid rgba(255,255,255,.13); padding-top: 8px; }
+    .result-grid small { display: block; color: #828b9b; font-size: 10px; margin-bottom: 3px; }
+    .result-grid strong { font-size: 12px; font-weight: 600; }
+    .result-actions { color: #aeb7c5; font-size: 10px; margin-top: 10px; }
+    .demo-footer { padding: 10px 20px 14px; border-top: 1px solid rgba(255,255,255,.09); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .demo-footer .btn { height: 34px; font-size: 11px; padding: 0 11px; }
+    .demo-footer small { color: #7d8796; font-size: 10px; }
+    .stats { padding: 8px 72px 22px; display: flex; justify-content: space-between; gap: 18px; color: #d8d8d8; }
+    .stat { display: inline-flex; align-items: center; gap: 11px; font-size: 12px; white-space: nowrap; }
+    .stat svg { width: 19px; height: 19px; flex: none; }
+    .stat b { font-weight: 600; color: #fff; }
+    dialog { border: 1px solid rgba(255,255,255,.25); border-radius: 12px; background: #101216; color: #fff; box-shadow: 0 28px 100px #000; width: min(760px,calc(100vw - 32px)); max-height: min(75vh,700px); margin: auto; padding: 0; }
+    dialog::backdrop { background: rgba(0,0,0,.75); backdrop-filter: blur(8px); }
+    .dialog-head { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding: 16px 19px; }
+    .dialog-head h2 { font-size: 15px; }
+    .dialog-head button { border: 0; background: transparent; color: #fff; font-size: 22px; }
+    .dialog-body { max-height: calc(75vh - 55px); overflow: auto; padding: 17px 19px; }
+    .evidence-item { border: 1px solid var(--border); border-radius: 7px; padding: 12px; margin-bottom: 9px; }
+    .evidence-item h3 { font-size: 12px; margin-bottom: 5px; }
+    .evidence-item code { color: #b9c9e4; font-size: 10px; overflow-wrap: anywhere; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; color: #aeb8c8; font-size: 11px; line-height: 1.5; margin-top: 9px; }
+    .empty { color: #a0a7b3; font-size: 12px; line-height: 1.5; }
+    .appear { opacity: 1; animation: in-soft 1s cubic-bezier(.16,1,.3,1) both; animation-delay: var(--d,.08s); }
+    @keyframes in-soft { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+    @media (min-width: 1600px) { .workspace { width: min(1640px,calc(100% - 128px)); } .hero { padding-top: 35px; padding-bottom: 34px; } .header { padding: 28px 64px 10px; } h1 { font-size: 64px; } .stats { padding: 10px 96px 30px; } .stat { font-size: 14px; } }
+    @media (min-width: 901px) and (max-height: 850px) { .header { padding-top: 12px; } .hero { padding-top: 7px; padding-bottom: 12px; } h1 { font-size: clamp(34px,3.1vw,49px); } .lede { margin-top: 7px; } .eyebrow { margin-bottom: 9px; } .stats { padding-bottom: 12px; } }
+    @media (min-width: 901px) { html, body { height: 100%; overflow: hidden; } .app { height: 100dvh; } }
+    @media (max-width: 1150px) { .workspace { width: calc(100% - 36px); grid-template-columns: minmax(0,1.2fr) minmax(330px,.9fr); gap: 10px; } .header { padding-left: 24px; padding-right: 24px; } .nav a { padding: 0 12px; font-size: 12px; } .stats { padding-left: 32px; padding-right: 32px; } .stat { font-size: 10px; } .flow-detail { padding: 12px; } }
+    @media (max-width: 900px) { html, body { height: auto; overflow-y: auto; } .app { display: block; min-height: 100dvh; overflow: visible; } .header { grid-template-columns: 1fr auto auto; padding: 16px 18px; } .header-right { grid-column: 2; } .connection { display: none; } .menu-button { display: flex; grid-column: 3; position: relative; z-index: 70; } .menu-backdrop { display: block; position: fixed; inset: 0; z-index: 40; background: rgba(8,8,8,.45); opacity: 0; visibility: hidden; backdrop-filter: blur(24px); transition: opacity .28s,visibility .28s; } .nav { position: fixed; inset: 0; z-index: 45; flex-direction: column; justify-content: center; padding: 95px 22px 32px; gap: 12px; opacity: 0; visibility: hidden; transition: opacity .28s,visibility .28s; } .nav a { width: min(520px,100%); height: 56px; justify-content: center; font-size: 18px; border-radius: 10px; } body.menu-open { overflow: hidden; } body.menu-open .nav,body.menu-open .menu-backdrop { opacity: 1; visibility: visible; } body.menu-open .menu-button b:first-child { transform: translateY(6.5px) rotate(45deg); } body.menu-open .menu-button b:nth-child(2) { opacity: 0; } body.menu-open .menu-button b:last-child { transform: translateY(-6.5px) rotate(-45deg); } .hero { padding: 36px 20px 28px; } h1 { font-size: clamp(34px,6vw,52px); } .workspace { width: calc(100% - 32px); display: flex; flex-direction: column; padding-bottom: 20px; } .flow-panel { min-height: 515px; grid-template-rows: 60px minmax(0,1fr) 110px; } .demo-panel { min-height: 535px; grid-template-rows: 60px auto minmax(0,1fr) auto; } .stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 18px 30px; padding: 10px 20px 28px; } .stat { font-size: 12px; } }
+    @media (max-width: 560px) { .header-right .btn { display: none; } .hero { padding-top: 25px; } .lede { font-size: 13px; } .workspace { width: calc(100% - 20px); } .flow-panel { min-height: 430px; grid-template-rows: 55px minmax(0,1fr) 103px; } .flow-wrap { padding: 0 2px; } .flow-detail { gap: 8px; } .detail-desc { font-size: 10px; } .tool-list { max-width: 155px; } .tool-list span { font-size: 8px; } .demo-controls,.demo-content { padding-left: 14px; padding-right: 14px; } .case-row { grid-template-columns: 1fr; } .case-row .btn { width: 100%; } .stats { flex-direction: column; align-items: center; } }
+    @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation: none !important; transition: none !important; } .appear { opacity: 1; transform: none; } }
+    /* Readable, vertically separated sections: the case demo follows the map on scroll. */
+    html,body { height:auto; overflow-x:hidden; overflow-y:auto; }
+    .app { display:block; height:auto; min-height:100dvh; overflow:visible; }
+    .header { position:sticky; top:0; background:rgba(0,0,0,.85); border-bottom:1px solid rgba(225,235,255,.15); backdrop-filter:blur(22px); padding-top:13px; padding-bottom:13px; }
+    .hero { padding:56px 24px 43px; }
+    .lede { max-width:750px; color:#c8d0dc; font-size:16px; line-height:1.7; }
+    .workspace { display:flex; flex-direction:column; gap:0; width:min(1200px,calc(100% - 64px)); padding-bottom:0; }
+    .flow-panel { min-height:550px; grid-template-rows:68px minmax(0,1fr) auto; scroll-margin-top:87px; }
+    .panel-head { height:68px; padding:0 26px; }
+    .panel-title { font-size:18px; }
+    .panel-title svg { width:22px; height:22px; }
+    .panel-kicker { color:#b6c0cf; font-size:11px; }
+    .panel-link { color:#d4e2f8; font-size:12px; font-weight:600; white-space:nowrap; }
+    .panel-link:hover { text-decoration:underline; }
+    .flow-wrap { padding:12px 20px 4px; }
+    .flow-hint { display:none; }
+    .flow-svg .node-label { font-size:17px; }
+    .flow-svg .node-sub { fill:#b2bed0; font-size:12px; }
+    .flow-detail { align-items:center; padding:20px 26px; background:rgba(14,20,29,.76); }
+    .detail-eyebrow { color:#b2c2dc; font-size:11px; }
+    .detail-name { font-size:18px; }
+    .detail-desc { color:#c7d0dc; font-size:13px; line-height:1.58; }
+    .tool-list { max-width:390px; }
+    .tool-list span { color:#d6e3f7; font-size:11px; padding:6px 8px; }
+    .section-divider { padding:78px 4px 25px; scroll-margin-top:85px; }
+    .section-divider span { display:block; color:#bed0ec; font-size:12px; font-weight:700; letter-spacing:.15em; }
+    .section-divider h2 { margin:9px 0 10px; font-size:clamp(30px,3.2vw,45px); line-height:1.14; letter-spacing:-.05em; font-weight:600; }
+    .section-divider h2 em { font-family:"Instrument Serif",Georgia,serif; font-weight:400; color:#c6d5ed; }
+    .section-divider p { color:#c4cdd9; font-size:15px; line-height:1.65; max-width:740px; }
+    .demo-panel { width:100%; min-height:0; display:grid; grid-template-rows:68px auto auto auto; scroll-margin-top:88px; }
+    .demo-controls { padding:22px 26px; }
+    .mode-switch button { font-size:13px; padding:9px 15px; }
+    .case-row { grid-template-columns:minmax(0,1fr) 180px; }
+    select { height:46px; font-size:13px; }
+    .case-row .btn { height:46px; font-size:13px; }
+    .case-hint { color:#b9c5d5; font-size:12px; }
+    .quick-cases button { color:#c6d2e3; font-size:12px; padding:7px 10px; }
+    .demo-content { overflow:visible; padding:22px 26px 26px; }
+    .section-label { color:#bac7d8; font-size:12px; }
+    .section-label small { color:#a9b7c9; font-size:11px; }
+    .timeline { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+    .step { min-height:44px; color:#c4cdd9; font-size:13px; padding:8px 11px; }
+    .step-meta { color:#a6b5c8; font-size:11px; }
+    .result { margin-top:22px; padding:20px; }
+    .result-issue { font-size:19px; }
+    .result-grid small { color:#b6c2d2; font-size:11px; }
+    .result-grid strong { font-size:14px; }
+    .result-actions { color:#c6d1df; font-size:12px; }
+    .demo-footer { padding:15px 26px 20px; }
+    .demo-footer .btn { height:40px; font-size:13px; }
+    .demo-footer small { color:#acb8c9; font-size:11px; }
+    .stats { justify-content:center; gap:36px; padding:45px 24px; }
+    .stat { color:#d3dbe7; font-size:13px; }
+    .evidence-item h3 { font-size:14px; }
+    .evidence-item code,.empty { font-size:12px; }
+    pre { font-size:12px; }
+    @media(max-width:900px) { .header { position:relative; } .hero { padding:44px 22px 34px; } .workspace { width:calc(100% - 32px); } .flow-panel { min-height:500px; } .section-divider { padding-top:62px; } .stats { padding:35px 20px; } }
+    @media(max-width:600px) { .hero { padding:30px 18px 25px; } .lede { font-size:14px; } .workspace { width:calc(100% - 20px); } .panel-head { height:auto; min-height:60px; padding:13px 16px; } .panel-title { font-size:16px; } .panel-kicker { display:none; } .panel-link { font-size:11px; } .flow-panel { min-height:0; grid-template-rows:auto 315px auto; } .flow-wrap { padding:0 8px; overflow-x:auto; } .flow-hint { display:block; position:sticky; left:8px; width:max-content; margin:9px 0 -33px 5px; padding:6px 8px; border:1px solid #465672; border-radius:5px; background:#121b28; color:#d8e6fa; font-size:11px; font-weight:600; z-index:2; } .flow-svg { width:720px; min-width:720px; height:100%; } .flow-detail { display:block; padding:16px; } .detail-name { font-size:16px; } .detail-desc { font-size:12px; } .tool-list { justify-content:flex-start; max-width:none; margin-top:11px; } .tool-list span { font-size:10px; } .section-divider { padding:55px 5px 20px; } .section-divider p { font-size:13px; } .demo-controls,.demo-content,.demo-footer { padding-left:16px; padding-right:16px; } .case-row { grid-template-columns:1fr; } .timeline { grid-template-columns:1fr; } .step { font-size:12px; } .stats { flex-direction:column; align-items:center; gap:16px; } }
+  </style>
+</head>
+<body style="background:#000;color:#fff">
+  <div class="grain" aria-hidden="true"></div>
+  <div class="ambient" aria-hidden="true"></div>
+  <div class="app" id="top">
+    <div class="menu-backdrop" id="menu-backdrop"></div>
+    <header class="header">
+      <a class="logo appear" style="--d:.08s" href="#top" aria-label="Vesper.ai">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g transform="rotate(-30 12 12)"><circle cx="7.3" cy="3.2" r="1.45"/><rect x="5.5" y="4.7" width="3.6" height="14.6" rx="1.8"/><rect x="14.9" y="4.7" width="3.6" height="14.6" rx="1.8"/><circle cx="16.7" cy="20.8" r="1.45"/></g></svg>
+        Vesper<span>.ai</span>
+      </a>
+      <nav class="nav" id="site-nav" aria-label="Primary">
+        <a class="active" href="#flow">Agent flow</a>
+        <a href="/agents">Agent roles</a>
+        <a href="#demo">Live demo</a>
+        <a href="#evidence" id="nav-evidence">Evidence</a>
+      </nav>
+      <div class="header-right">
+        <span class="connection" id="connection"><i></i><span>LOCAL WORKSPACE</span></span>
+        <a class="btn btn-solid" href="#demo">Explore cases <span aria-hidden="true">↗</span></a>
+      </div>
+      <button class="menu-button" id="menu-button" aria-controls="site-nav" aria-expanded="false" aria-label="Open menu"><b></b><b></b><b></b></button>
+    </header>
+
+    <section class="hero" aria-labelledby="headline">
+      <div class="eyebrow appear" style="--d:.18s"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.6c.55 0 .88.55 1.08 2.1.62 4.7 1.52 5.6 6.22 6.22 1.55.2 2.1.53 2.1 1.08s-.55.88-2.1 1.08c-4.7.62-5.6 1.52-6.22 6.22-.2 1.55-.53 1.08-2.1 1.08s-.88-.55-1.08-2.1c-.62-4.7-1.52-5.6-6.22-6.22C3.15 12.88 2.6 12.55 2.6 12s.55-.88 2.1-1.08c4.7-.62 5.6-1.52 6.22-6.22C11.12 3.15 11.45 2.6 12 2.6Z"/></svg> OPERATIONAL AI INFRASTRUCTURE · L3A</div>
+      <h1 class="appear" id="headline" style="--d:.32s">Watch <em>AI agents</em> resolve<br>real customer claims.</h1>
+      <p class="lede appear" style="--d:.48s">Một case đi từ khiếu nại đến quyết định có chứng cứ: xem Operation map, rồi cuộn xuống để chạy demo end-to-end.</p>
+    </section>
+
+    <main class="workspace">
+      <section class="panel flow-panel appear" id="flow" style="--d:.57s" aria-labelledby="flow-title">
+        <div class="panel-head"><h2 class="panel-title" id="flow-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="4" cy="12" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="20" cy="12" r="2"/><path d="M6 11l4-5M6 13l4 5m4-13 4 6m-4 8 4-6"/></svg> Multi-agent operation map</h2><a class="panel-link" href="/agents">Nhiệm vụ 6 agent ↗</a></div>
+        <div class="flow-wrap">
+          <span class="flow-hint">Vuốt ngang để xem toàn bộ sơ đồ →</span>
+          <svg class="flow-svg" viewBox="0 68 820 332" role="img" aria-label="Luồng từ customer claim qua coordinator, bốn specialist agents, MCP Gateway, verifier tới output và trace">
+            <defs><marker id="arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0L7 3.5 0 7Z" fill="#8796b2"/></marker><linearGradient id="core-gradient" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#272f3a"/><stop offset="1" stop-color="#0e1116"/></linearGradient></defs>
+            <path class="wire" data-wire="input" d="M143 202H185" marker-end="url(#arrow)"/>
+            <path class="wire" data-wire="coordinator" d="M315 202H337V100H360 M337 202H360 M337 202V302H360 M337 202V167H360" />
+            <path class="wire" data-wire="agents" d="M504 100H540V202H596 M504 167H540 M504 234H540 M504 301H540" marker-end="url(#arrow)"/>
+            <path class="wire mcp-branch" data-wire="mcp" d="M504 100H560V370H546 M504 167H560 M504 234H560 M504 301H560"/>
+            <path class="wire" data-wire="verifier" d="M706 202H745" marker-end="url(#arrow)"/>
+            <g class="node" data-node="input" tabindex="0" role="button" aria-label="Customer request">
+              <rect x="25" y="172" width="118" height="61" rx="10"/><circle class="core" cx="43" cy="190" r="3"/><text class="node-label" x="39" y="207">Customer</text><text class="node-sub" x="39" y="222">case input</text>
+            </g>
+            <g class="node" data-node="coordinator" tabindex="0" role="button" aria-label="Coordinator">
+              <rect x="185" y="172" width="130" height="61" rx="10"/><circle class="core" cx="203" cy="190" r="3"/><text class="node-label" x="199" y="207">Coordinator</text><text class="node-sub" x="199" y="222">dispatch · merge</text>
+            </g>
+            <g class="node" data-node="order" tabindex="0" role="button" aria-label="Order agent">
+              <rect x="360" y="76" width="144" height="48" rx="9"/><circle class="agent-dot" cx="375" cy="92" r="2.5"/><text class="node-label" x="371" y="105">Order agent</text><text class="node-sub" x="371" y="117">order · items · seller</text>
+            </g>
+            <g class="node" data-node="payment" tabindex="0" role="button" aria-label="Payment agent">
+              <rect x="360" y="143" width="144" height="48" rx="9"/><circle class="agent-dot" cx="375" cy="159" r="2.5"/><text class="node-label" x="371" y="172">Payment agent</text><text class="node-sub" x="371" y="184">capture · refund</text>
+            </g>
+            <g class="node" data-node="shipment" tabindex="0" role="button" aria-label="Shipment agent">
+              <rect x="360" y="210" width="144" height="48" rx="9"/><circle class="agent-dot" cx="375" cy="226" r="2.5"/><text class="node-label" x="371" y="239">Shipment agent</text><text class="node-sub" x="371" y="251">handoff · delivery</text>
+            </g>
+            <g class="node" data-node="policy" tabindex="0" role="button" aria-label="Policy agent">
+              <rect x="360" y="277" width="144" height="48" rx="9"/><circle class="agent-dot" cx="375" cy="293" r="2.5"/><text class="node-label" x="371" y="306">Policy agent</text><text class="node-sub" x="371" y="318">remedy · amount</text>
+            </g>
+            <g class="node" data-node="verifier" tabindex="0" role="button" aria-label="Verifier">
+              <rect x="596" y="172" width="110" height="61" rx="10"/><circle class="core" cx="614" cy="190" r="3"/><text class="node-label" x="610" y="207">Verifier</text><text class="node-sub" x="610" y="222">schema · refs</text>
+            </g>
+            <g class="node" data-node="output" tabindex="0" role="button" aria-label="Output and trace">
+              <rect x="745" y="172" width="68" height="61" rx="10"/><circle class="core" cx="762" cy="190" r="3"/><text class="node-label" x="756" y="207">Output</text><text class="node-sub" x="756" y="222">+ trace</text>
+            </g>
+            <g class="node hub" data-node="mcp" tabindex="0" role="button" aria-label="MCP Evidence Gateway">
+              <rect x="319" y="344" width="227" height="51" rx="11"/><circle class="core" cx="340" cy="363" r="4"/><text class="node-label" x="335" y="375">MCP Evidence Gateway</text><text class="node-sub" x="335" y="388">audited tools · evidence_ref</text>
+            </g>
+          </svg>
+        </div>
+        <div class="flow-detail" id="flow-detail"><div class="detail-copy"><div class="detail-eyebrow" id="detail-eyebrow">SELECT A NODE</div><div class="detail-name" id="detail-name">Click một agent để xem nhiệm vụ</div><div class="detail-desc" id="detail-desc">Luồng A2A điều phối các specialist, MCP trả evidence có provenance, verifier nối kết quả với trace.</div></div><div class="tool-list" id="tool-list"><span>get_order</span><span>get_payment_timeline</span><span>get_policy</span></div></div>
+      </section>
+
+      <div class="section-divider"><span>02 / END-TO-END DEMO</span><h2>Cuộn xuống. <em>Xem hệ thống xử lý một case.</em></h2><p>Chọn case, phát lại trace đã lưu hoặc thử gọi MCP thật. Từng bước và kết quả sẽ hiện ngay bên dưới.</p></div>
+      <section class="panel demo-panel appear" id="demo" style="--d:.68s" aria-labelledby="demo-title">
+        <div class="panel-head"><h2 class="panel-title" id="demo-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m8 5 11 7-11 7V5Z"/><circle cx="12" cy="12" r="10"/></svg> End-to-end case demo</h2><span class="panel-kicker" id="run-label">READY TO RUN</span></div>
+        <div class="demo-controls">
+          <div class="mode-switch" role="group" aria-label="Demo mode"><button type="button" class="selected" id="mode-replay" aria-pressed="true">Replay trace</button><button type="button" id="mode-live" aria-pressed="false">Live MCP run</button></div>
+          <div class="case-row"><div class="select-wrap"><select id="case-select" aria-label="Chọn test case"><option value="">Loading cases…</option></select></div><button type="button" class="btn btn-solid" id="run-button">▶ Play case</button></div>
+          <p class="case-hint" id="case-hint">Đang đọc input và trace từ workspace…</p>
+          <div class="quick-cases" aria-label="Case demo gợi ý"><button type="button" data-case="L3A_CASE_001">01 · Canceled</button><button type="button" data-case="L3A_CASE_004">04 · Logistics</button><button type="button" data-case="L3A_CASE_007">07 · Duplicate</button><button type="button" data-case="L3A_CASE_009">09 · Refund failed</button></div>
+        </div>
+        <div class="demo-content">
+          <div class="section-label"><span>Execution trace</span><small id="event-count">0 events</small></div>
+          <div class="timeline" id="timeline" aria-live="polite">
+            <div class="step"><span class="step-index">1</span><span>Receive customer claim</span><span class="step-meta">input</span></div>
+            <div class="step"><span class="step-index">2</span><span>Coordinator dispatches agents</span><span class="step-meta">A2A</span></div>
+            <div class="step"><span class="step-index">3</span><span>Specialists consume MCP evidence</span><span class="step-meta">MCP</span></div>
+            <div class="step"><span class="step-index">4</span><span>Policy selects remedy</span><span class="step-meta">policy</span></div>
+            <div class="step"><span class="step-index">5</span><span>Verifier records evidence status</span><span class="step-meta">verify</span></div>
+            <div class="step"><span class="step-index">6</span><span>Output and trace finalized</span><span class="step-meta">JSON</span></div>
+          </div>
+          <div class="result" id="result"><div class="result-top"><div><div class="detail-eyebrow">FINAL ASSESSMENT</div><div class="result-issue" id="result-issue">—</div></div><span class="result-badge" id="result-badge">—</span></div><div class="result-grid"><div><small>Refund</small><strong id="result-refund">—</strong></div><div><small>Confidence</small><strong id="result-confidence">—</strong></div><div><small>Evidence refs</small><strong id="result-refs">—</strong></div></div><div class="result-actions" id="result-actions"></div></div>
+        </div>
+        <div class="demo-footer"><button class="btn btn-ghost" type="button" id="evidence-button">Inspect evidence ↗</button><small id="demo-note">Replay dùng artifact đã được tạo bởi day09 run.</small></div>
+      </section>
+    </main>
+    <div class="stats" aria-label="Workspace metrics"><div class="stat"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="18" rx="3.5" fill="#b4b9c2"/><rect x="14" y="3" width="7" height="18" rx="3.5" fill="#e2e5eb"/><rect x="9" y="11" width="6" height="2" rx="1" fill="#626a76"/></svg><span><b id="stat-cases">—</b> test cases available</span></div><div class="stat"><svg viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="6" fill="#f1f1f1"/><path d="M12 6v9m-4-4 4 4 4-4" stroke="#111" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span><b id="stat-outputs">—</b> outputs validated</span></div><div class="stat"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#d7dce5" stroke-width="1.5"/><path d="M7 12h10M12 7v10" stroke="#d7dce5" stroke-width="1.5"/></svg><span><b id="stat-trace">—</b> observable trace events</span></div></div>
+  </div>
+
+  <dialog id="evidence-dialog"><div class="dialog-head"><h2>Evidence &amp; MCP tool calls</h2><button id="close-dialog" aria-label="Close evidence">×</button></div><div class="dialog-body" id="evidence-list"></div></dialog>
+  <script>
+    (() => {
+      "use strict";
+      const $ = (id) => document.getElementById(id);
+      const nodes = Array.from(document.querySelectorAll(".flow-svg .node"));
+      const wires = Array.from(document.querySelectorAll(".flow-svg .wire"));
+      const steps = Array.from($("timeline").querySelectorAll(".step"));
+      const details = {
+        input: ["01 / REQUEST","Customer case","Tin nhắn, order ID và claim là câu hỏi cần xác minh; lời kể không được coi là ground truth.",[]],
+        coordinator: ["02 / ORCHESTRATE","Coordinator","Nhận case_id, khám phá tool, giao việc cho specialist và tổng hợp các handoff A2A.",[]],
+        order: ["03 / SPECIALIST","Order agent","Xác thực trạng thái đơn, item và seller thuộc đúng order.",["get_order","get_order_items","get_sellers"]],
+        payment: ["03 / SPECIALIST","Payment agent","Đối soát capture, mismatch, duplicate charge và refund lifecycle.",["get_payment_timeline","get_refund_timeline"]],
+        shipment: ["03 / SPECIALIST","Shipment agent","So sánh thời điểm handoff với shipping limit và estimated delivery.",["get_shipment_summary"]],
+        policy: ["03 / SPECIALIST","Policy agent","Áp dụng quy tắc cho issue đã có chứng cứ, xác định action, refund và trách nhiệm.",["get_policy"]],
+        mcp: ["MCP / AUDIT","Evidence Gateway","Mỗi lời gọi gắn case_id và trả data + evidence_ref thật; trace ghi tool_result_consumed.",["get_order","get_order_items","get_payment_timeline","get_shipment_summary","get_refund_timeline","get_sellers","get_policy"]],
+        verifier: ["04 / VERIFY","Verifier","Ghi PASS hoặc PARTIAL_EVIDENCE theo tool lỗi; bước validate sau đó kiểm tra schema, refs và tổng refund.",[]],
+        output: ["05 / FINALIZE","Output + trace","Tạo JSON theo public contract và trace lifecycle có thể đối chiếu.",[]]
+      };
+      let mode = "replay";
+      let current = null;
+      let caseMap = new Map();
+      let playing = false;
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, (char) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+      }
+      function selectNode(name) {
+        nodes.forEach((node) => node.classList.toggle("active", node.dataset.node === name));
+        const detail = details[name] || details.coordinator;
+        $("detail-eyebrow").textContent = detail[0];
+        $("detail-name").textContent = detail[1];
+        $("detail-desc").textContent = detail[2];
+        $("tool-list").innerHTML = detail[3].map((tool) => "<span>" + escapeHtml(tool) + "</span>").join("");
+        wires.forEach((wire) => wire.classList.toggle("hot", wire.dataset.wire === name || (name === "order" || name === "payment" || name === "shipment" || name === "policy") && wire.dataset.wire === "agents"));
+      }
+      nodes.forEach((node) => {
+        node.addEventListener("click", () => selectNode(node.dataset.node));
+        node.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); selectNode(node.dataset.node); } });
+      });
+      selectNode("coordinator");
+
+      function setMenu(open) {
+        document.body.classList.toggle("menu-open", open);
+        $("menu-button").setAttribute("aria-expanded", String(open));
+        $("menu-button").setAttribute("aria-label", open ? "Close menu" : "Open menu");
+      }
+      $("menu-button").addEventListener("click", () => setMenu(!document.body.classList.contains("menu-open")));
+      $("menu-backdrop").addEventListener("click", () => setMenu(false));
+      document.querySelectorAll(".nav a").forEach((link) => link.addEventListener("click", () => setMenu(false)));
+      document.addEventListener("keydown", (event) => { if (event.key === "Escape") setMenu(false); });
+      window.matchMedia("(min-width: 901px)").addEventListener("change", (event) => { if (event.matches) setMenu(false); });
+
+      function setMode(next) {
+        mode = next;
+        $("mode-replay").classList.toggle("selected", mode === "replay");
+        $("mode-live").classList.toggle("selected", mode === "live");
+        $("mode-replay").setAttribute("aria-pressed", String(mode === "replay"));
+        $("mode-live").setAttribute("aria-pressed", String(mode === "live"));
+        $("run-button").textContent = mode === "live" ? "▶ Run live MCP" : "▶ Play case";
+        $("demo-note").textContent = mode === "live" ? "Live run gọi MCP thật; không ghi đè submission." : "Replay dùng artifact đã được tạo bởi day09 run.";
+        current = null;
+        resetDisplay();
+      }
+      $("mode-replay").addEventListener("click", () => setMode("replay"));
+      $("mode-live").addEventListener("click", () => setMode("live"));
+
+      function resetDisplay() {
+        steps.forEach((step) => step.classList.remove("done","current"));
+        $("result").classList.remove("visible");
+        $("event-count").textContent = "0 events";
+        $("run-label").textContent = "READY TO RUN";
+      }
+      function markStep(index) {
+        steps.forEach((step, position) => {
+          step.classList.toggle("done", position < index);
+          step.classList.toggle("current", position === index);
+        });
+        const mapping = ["input","coordinator","mcp","policy","verifier","output"];
+        selectNode(mapping[index] || "output");
+      }
+      function updateCaseHint() {
+        const item = caseMap.get($("case-select").value);
+        $("case-hint").textContent = item ? item.topic.replaceAll("_"," ") + " · " + (item.has_output ? "saved output available" : "live run available") : "Chưa có input hợp lệ.";
+        document.querySelectorAll(".quick-cases button").forEach((button) => button.classList.toggle("active", button.dataset.case === $("case-select").value));
+      }
+      $("case-select").addEventListener("change", () => { current = null; resetDisplay(); updateCaseHint(); });
+      document.querySelectorAll(".quick-cases button").forEach((button) => button.addEventListener("click", () => {
+        if (caseMap.has(button.dataset.case)) {
+          $("case-select").value = button.dataset.case;
+          $("case-select").dispatchEvent(new Event("change"));
+        }
+      }));
+      function showResult(payload) {
+        const result = payload.output;
+        if (!result) { $("run-label").textContent = "NO SAVED OUTPUT"; return; }
+        $("result").classList.add("visible");
+        $("result-issue").textContent = result.assessment.primary_issue.replaceAll("_"," ");
+        const badge = $("result-badge");
+        badge.textContent = result.assessment.case_status.replaceAll("_"," ");
+        badge.className = "result-badge" + (result.assessment.case_status === "no_action" ? " no-action" : result.assessment.case_status === "needs_investigation" ? " investigate" : "");
+        $("result-refund").textContent = new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(result.financial_resolution.recommended_refund_brl);
+        $("result-confidence").textContent = Math.round(result.assessment.confidence * 100) + "%";
+        $("result-refs").textContent = String(result.evidence_refs.length);
+        $("result-actions").textContent = "Action: " + result.resolution_actions.join(", ");
+        $("event-count").textContent = payload.events.length + " events";
+        $("run-label").textContent = payload.mode === "live" ? "LIVE RUN COMPLETE" : "TRACE REPLAYED";
+      }
+      function delay(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
+      async function play(payload) {
+        const events = payload.events || [];
+        for (let index = 0; index < 6; index++) {
+          markStep(index);
+          if (index === 2) {
+            const consumed = events.filter((event) => event.event_type === "tool_result_consumed");
+            const agents = {get_order:"order",get_order_items:"order",get_sellers:"order",get_payment_timeline:"payment",get_refund_timeline:"payment",get_shipment_summary:"shipment"};
+            for (const event of consumed) { selectNode(agents[event.tool_name] || "mcp"); await delay(170); }
+            selectNode("mcp");
+          }
+          await delay(index === 2 ? 280 : 380);
+        }
+        steps.forEach((step) => { step.classList.remove("current"); step.classList.add("done"); });
+        showResult(payload);
+      }
+      async function run() {
+        if (playing) return;
+        const caseId = $("case-select").value;
+        if (!caseId) return;
+        playing = true;
+        $("run-button").disabled = true;
+        resetDisplay();
+        $("run-label").textContent = mode === "live" ? "CALLING MCP…" : "LOADING TRACE…";
+        try {
+          const response = mode === "live"
+            ? await fetch("/api/run",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({case_id:caseId})})
+            : await fetch("/api/case/" + encodeURIComponent(caseId));
+          const payload = await response.json();
+          if (!response.ok) throw new Error(payload.error || "Request failed");
+          current = payload;
+          if (!payload.output || !payload.events.length) throw new Error("Chưa có artifact cho case này. Chạy day09 run hoặc chọn Live MCP run.");
+          await play(payload);
+        } catch (error) {
+          $("run-label").textContent = "RUN FAILED";
+          $("case-hint").textContent = error.message;
+        } finally { playing = false; $("run-button").disabled = false; }
+      }
+      $("run-button").addEventListener("click", run);
+
+      function showEvidence() {
+        const box = $("evidence-list");
+        if (!current) {
+          box.innerHTML = '<p class="empty">Chọn case và chạy demo để xem evidence.</p>';
+        } else if (current.mode === "live" && current.evidence.length) {
+          box.innerHTML = current.evidence.map((item) => '<div class="evidence-item"><h3>' + escapeHtml(item.tool_name) + ' · ' + escapeHtml(item.domain) + '</h3><code>' + escapeHtml(item.evidence_ref) + '</code><pre>' + escapeHtml(JSON.stringify(item.data,null,2)) + '</pre></div>').join("");
+        } else {
+          const used = current.events.filter((event) => event.event_type === "tool_result_consumed");
+          box.innerHTML = used.length ? used.map((event) => '<div class="evidence-item"><h3>' + escapeHtml(event.actor) + ' → ' + escapeHtml(event.tool_name || "") + '</h3><code>' + escapeHtml((event.evidence_refs || []).join(", ")) + '</code></div>').join("") + '<p class="empty">Replay hiển thị trace đã lưu. Chọn Live MCP run để xem data gốc của từng tool.</p>' : '<p class="empty">Không có evidence trong trace đã lưu.</p>';
+        }
+        $("evidence-dialog").showModal();
+      }
+      $("evidence-button").addEventListener("click", showEvidence);
+      $("nav-evidence").addEventListener("click", (event) => { event.preventDefault(); showEvidence(); });
+      $("close-dialog").addEventListener("click", () => $("evidence-dialog").close());
+
+      async function init() {
+        try {
+          const response = await fetch("/api/summary");
+          const data = await response.json();
+          $("stat-cases").textContent = data.cases.length;
+          $("stat-outputs").textContent = data.output_count;
+          $("stat-trace").textContent = new Intl.NumberFormat("en-US").format(data.trace_count);
+          $("connection").classList.toggle("offline", !data.ready);
+          $("connection").querySelector("span").textContent = data.ready ? "WORKSPACE READY" : "INPUTS NEEDED";
+          caseMap = new Map(data.cases.map((item) => [item.case_id,item]));
+          $("case-select").innerHTML = data.cases.map((item) => '<option value="' + escapeHtml(item.case_id) + '">' + escapeHtml(item.case_id) + ' · ' + escapeHtml(item.topic.replaceAll("_"," ")) + '</option>').join("");
+          if (!data.cases.length) {
+            $("case-select").innerHTML = '<option value="">No cases available</option>';
+            $("run-button").disabled = true;
+            $("case-hint").textContent = data.message || "Chưa có input.";
+          } else {
+            const requested = new URLSearchParams(location.search).get("case");
+            $("case-select").value = requested && caseMap.has(requested) ? requested : caseMap.has("L3A_CASE_001") ? "L3A_CASE_001" : data.cases[0].case_id;
+            updateCaseHint();
+          }
+        } catch (error) {
+          $("run-label").textContent = "SERVER OFFLINE";
+          $("case-hint").textContent = "Không đọc được backend demo.";
+        }
+      }
+      init();
+    })();
+  </script>
+</body>
+</html>

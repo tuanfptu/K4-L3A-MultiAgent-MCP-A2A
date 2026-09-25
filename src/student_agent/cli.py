@@ -9,6 +9,7 @@ from pathlib import Path
 from .cases import load_case_set
 from .config import Settings
 from .contracts import Contracts
+from .demo import serve
 from .mcp_gateway import connect_gateway
 from .submission import package_submission, validate_artifacts
 from .trace import TraceWriter
@@ -68,6 +69,8 @@ def parser() -> argparse.ArgumentParser:
     commands.add_parser("validate", help="validate outputs and observable trace")
     package = commands.add_parser("package", help="validate and build the submission ZIP")
     package.add_argument("--output", default="dist/submission.zip")
+    demo = commands.add_parser("demo", help="open the local visual agent and MCP demo")
+    demo.add_argument("--port", type=int, default=8765)
     return result
 
 
@@ -93,6 +96,8 @@ def main() -> None:
         elif args.command == "package":
             destination = package_submission(root, root / args.output)
             print(f"OK: {destination}")
+        elif args.command == "demo":
+            serve(root, port=args.port)
     except (OSError, RuntimeError, ValueError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         raise SystemExit(1) from exc

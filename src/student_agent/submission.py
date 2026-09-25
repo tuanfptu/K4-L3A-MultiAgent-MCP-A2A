@@ -65,6 +65,8 @@ def validate_artifacts(
         raise ValueError("traces/trace.jsonl is missing or not UTF-8") from exc
     normalized_lines: list[str] = []
     seen_events: set[str] = set()
+    consumed: dict[str, set[str]] = {case_id: set() for case_id in expected}
+    lifecycle: dict[str, list[str]] = {case_id: [] for case_id in expected}
     for number, line in enumerate(trace_lines, 1):
         if not line.strip():
             continue
@@ -78,7 +80,25 @@ def validate_artifacts(
         if event["event_id"] in seen_events:
             raise ValueError(f"traces/trace.jsonl:{number}: duplicate event_id")
         seen_events.add(event["event_id"])
+        lifecycle[event["case_id"]].append(event["event_type"])
+        if event["event_type"] == "tool_result_consumed":
+            consumed[event["case_id"]].update(event.get("evidence_refs", []))
         normalized_lines.append(json.dumps(event, ensure_ascii=False, separators=(",", ":")))
+
+    for case_id, output in outputs.items():
+        sequence = lifecycle[case_id]
+        if not sequence or sequence[0] != "case_received" or sequence[-1] != "case_finalized":
+            raise ValueError(f"{case_id}: trace lifecycle is incomplete or out of order")
+        output_refs = set(output["evidence_refs"])
+        if not output_refs <= consumed[case_id]:
+            raise ValueError(f"{case_id}: output cites evidence not consumed in its trace")
+        for claim in output.get("claim_assessments", []):
+            if not set(claim["evidence_refs"]) <= output_refs:
+                raise ValueError(f"{case_id}: claim cites evidence outside output refs")
+        financial = output["financial_resolution"]
+        line_total = round(sum(line["amount_brl"] for line in financial["refund_lines"]), 2)
+        if line_total != round(financial["recommended_refund_brl"], 2):
+            raise ValueError(f"{case_id}: refund lines do not sum to the recommended amount")
 
     serialized = [json.dumps(value, ensure_ascii=False) for value in outputs.values()]
     if SECRET_PATTERN.search("\n".join([*serialized, *normalized_lines])):

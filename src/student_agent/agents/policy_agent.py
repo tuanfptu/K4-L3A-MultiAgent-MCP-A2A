@@ -147,7 +147,7 @@ class PolicyAgent:
         all_evidence_refs.append(policy_ref)
 
         # Thu thập evidence_refs từ findings
-        for domain_key, finding in findings.items():
+        for finding in findings.values():
             ref = finding.get("evidence_ref")
             if ref and isinstance(ref, str):
                 all_evidence_refs.append(ref)
@@ -431,7 +431,10 @@ class PolicyAgent:
         payments = payment if isinstance(payment, list) else [payment]
         if len(payments) > 1:
             total = sum(_to_float(p.get("payment_value", 0)) for p in payments)
-            order_value = _to_float(order.get("price", 0)) + _to_float(order.get("freight_value", 0))
+            order_value = (
+                _to_float(order.get("price", 0))
+                + _to_float(order.get("freight_value", 0))
+            )
             if order_value > 0 and abs(total - order_value) < 0.01:
                 return "supported", 0.90
             return "partially_supported", 0.6

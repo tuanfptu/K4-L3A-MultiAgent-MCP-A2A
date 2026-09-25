@@ -17,13 +17,16 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.4,<9", "ruff>=0.12,<1"]
+dev = ["pytest>=8.4,<9", "pytest-asyncio>=0.23,<2", "ruff>=0.12,<1"]
 
 [project.scripts]
 day09 = "student_agent.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+student_agent = ["demo.html", "agents.html"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
