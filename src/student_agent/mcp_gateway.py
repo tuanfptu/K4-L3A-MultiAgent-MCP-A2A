@@ -24,16 +24,18 @@ class EvidenceGateway:
     async def call(self, tool_name: str, *, case_id: str, **arguments: str) -> dict[str, Any]:
         payload = {"case_id": case_id, **arguments}
         result = await self._session.call_tool(tool_name, arguments=payload)
-        if result.isError:
+        if result.is_error:
             message = " ".join(
-                block.text for block in result.content if getattr(block, "text", None)
+                block.text for block in result.content if hasattr(block, "text") and block.text
             )
             raise RuntimeError(f"MCP tool {tool_name} failed: {message or 'unknown error'}")
-        evidence = getattr(result, "structuredContent", None)
+        evidence = None
+        if hasattr(result, "structuredContent"):
+            evidence = result.structuredContent
+        elif hasattr(result, "structured_content"):
+            evidence = result.structured_content
         if evidence is None:
-            evidence = getattr(result, "structured_content", None)
-        if evidence is None:
-            text_blocks = [block.text for block in result.content if getattr(block, "text", None)]
+            text_blocks = [block.text for block in result.content if hasattr(block, "text") and block.text]
             if len(text_blocks) != 1:
                 raise ValueError(f"MCP tool {tool_name} did not return one evidence object")
             evidence = json.loads(text_blocks[0])
