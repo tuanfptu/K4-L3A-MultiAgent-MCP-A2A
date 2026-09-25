@@ -151,6 +151,26 @@ day09 run
 day09 validate
 ```
 
+### Demo giao diện
+
+Sau khi giải nén 100 input và chạy `day09 run`, mở giao diện local:
+
+```bash
+day09 demo
+```
+
+Truy cập `http://127.0.0.1:8765`. Giao diện có sơ đồ luồng A2A/MCP, mô tả
+tool của từng specialist và lựa chọn toàn bộ case. **Replay trace** phát lại
+output và trace của lượt chạy đã lưu. **Live MCP run** gọi Gateway thật cho một
+case, hiển thị data/evidence ref của từng tool và kết luận cuối; trace của demo
+được lưu riêng trong `traces/demo/`, không ghi đè submission. API key chỉ được
+đọc ở backend local từ `.env`, không đưa vào trang web. Có thể đổi cổng bằng
+`day09 demo --port 9000`.
+
+Trang [`/agents`](http://127.0.0.1:8765/agents) trình bày nhiệm vụ của cả sáu
+vai trò, tool MCP tương ứng, dữ liệu bàn giao và Operation map. Có thể mở
+trực tiếp từ mục **Agent roles** trên thanh điều hướng của demo.
+
 Kết quả được tạo tại:
 
 ```text

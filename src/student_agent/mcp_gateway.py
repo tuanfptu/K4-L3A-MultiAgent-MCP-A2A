@@ -16,15 +16,18 @@ class EvidenceGateway:
     def __init__(self, session: ClientSession, contracts: Contracts) -> None:
         self._session = session
         self._contracts = contracts
+        self._tools: list[str] | None = None
 
     async def list_tools(self) -> list[str]:
-        response = await self._session.list_tools()
-        return sorted(tool.name for tool in response.tools)
+        if self._tools is None:
+            response = await self._session.list_tools()
+            self._tools = sorted(tool.name for tool in response.tools)
+        return self._tools.copy()
 
     async def call(self, tool_name: str, *, case_id: str, **arguments: str) -> dict[str, Any]:
         payload = {"case_id": case_id, **arguments}
         result = await self._session.call_tool(tool_name, arguments=payload)
-        if result.is_error:
+        if getattr(result, "isError", getattr(result, "is_error", False)):
             message = " ".join(
                 block.text for block in result.content if hasattr(block, "text") and block.text
             )
@@ -35,7 +38,10 @@ class EvidenceGateway:
         elif hasattr(result, "structured_content"):
             evidence = result.structured_content
         if evidence is None:
-            text_blocks = [block.text for block in result.content if hasattr(block, "text") and block.text]
+            text_blocks = [
+                block.text for block in result.content
+                if hasattr(block, "text") and block.text
+            ]
             if len(text_blocks) != 1:
                 raise ValueError(f"MCP tool {tool_name} did not return one evidence object")
             evidence = json.loads(text_blocks[0])

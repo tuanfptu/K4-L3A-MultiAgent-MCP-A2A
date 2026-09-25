@@ -9,15 +9,12 @@ from __future__ import annotations
 import pytest
 
 from student_agent.agents.policy_agent import (
-    ClaimAssessment,
+    VALID_VERDICTS,
     PolicyAgent,
     PolicyResult,
-    VALID_PRIMARY_ISSUES,
-    VALID_VERDICTS,
     _clamp,
     _unique_refs,
 )
-
 
 # --------------------------------------------------------------------------- #
 # Mock classes                                                                 #
@@ -285,7 +282,9 @@ async def test_trace_events_emitted():
     )
 
     event_types = [e["event_type"] for e in trace.events]
-    assert "tool_result_consumed" in event_types, "Phải emit tool_result_consumed khi gọi get_policy"
+    assert "tool_result_consumed" in event_types, (
+        "Phải emit tool_result_consumed khi gọi get_policy"
+    )
     assert "policy_decided" in event_types, "Phải emit policy_decided khi ra quyết định"
 
     # Verify actor
