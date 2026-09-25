@@ -22,7 +22,7 @@ async def solve_case(
         case_id=case_id,
         event_type="case_received",
         actor="coordinator",
-        payload={"message": "Case started"}
+        attributes={"message": "Case started"}
     )
     
     # 2. Get available tools
@@ -36,14 +36,14 @@ async def solve_case(
         case_id=case_id,
         event_type="task_assigned",
         actor="coordinator",
-        specialist="order-agent",
-        task="Investigate order evidence"
+        target="order-agent",
+        attributes={"task": "Investigate order evidence"}
     )
     trace.emit(
         case_id=case_id,
         event_type="handoff",
-        source="coordinator",
-        destination="order-agent"
+        actor="coordinator",
+        target="order-agent"
     )
     
     # 5. Example tool call
@@ -66,8 +66,8 @@ async def solve_case(
     trace.emit(
         case_id=case_id,
         event_type="handoff",
-        source="order-agent",
-        destination="verifier"
+        actor="order-agent",
+        target="verifier"
     )
     
     # 7. Verification completed
@@ -75,7 +75,7 @@ async def solve_case(
         case_id=case_id,
         event_type="verification_completed",
         actor="verifier",
-        status="success"
+        attributes={"status": "success"}
     )
     
     # 8. Finalized
@@ -83,7 +83,7 @@ async def solve_case(
         case_id=case_id,
         event_type="case_finalized",
         actor="coordinator",
-        result="completed"
+        decision_code="completed"
     )
     
     # Return placeholder compliant format
